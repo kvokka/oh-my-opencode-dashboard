@@ -8,6 +8,7 @@ import { getLegacyStorageRootForBackend, selectStorageBackend } from "../ingest/
 import { createApi } from "./api"
 import { createDashboardStore, type DashboardStore } from "./dashboard"
 import { resolveServerHost } from "./host"
+import { ensureUiAssets, getDistRoot, getPackageRoot } from "./ui-assets"
 
 function isBunxInvocation(argv: string[]): boolean {
   if (process.env.BUN_INSTALL_CACHE_DIR) return true
@@ -109,7 +110,10 @@ const getStoreForSource = ({ sourceId, projectRoot }: { sourceId: string; projec
 
 app.route('/api', createApi({ store, storageRoot, projectRoot: project, storageBackend, getStoreForSource }))
 
-const distRoot = join(import.meta.dir, '../../dist')
+const packageRoot = getPackageRoot(import.meta.dir)
+const distRoot = getDistRoot(import.meta.dir)
+
+await ensureUiAssets({ packageRoot, distRoot })
 
 // SPA fallback middleware
 app.use('*', async (c, next) => {
